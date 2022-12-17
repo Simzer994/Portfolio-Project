@@ -18,23 +18,14 @@ def seperate_df(df: pd.DataFrame, begin_train: str, end_train: str, begin_test: 
     test = df.loc[begin_test:end_test]
     return train, test
 
+def annu_return(df: pd.DataFrame, business_days: int=252):
+    """
+    Return the annualized returns of a dataframe
+    """
+    return (df+1).prod()**(business_days/len(df))-1
 
-
-def portfolio_return(weights,returns):
+def asset_vola(df: pd.DataFrame):
     """
-    Return the portfolio return given the weights and returns
+    Return the annualized asset volatilities
     """
-    return (weights.T @ returns)
-
-def portfolio_var(weights,covmat):
-    """
-    Return the portfolio variance given the weights and covariance matrix
-    """
-    return (weights.T @ covmat @ weights)
-
-def portfolio_std(weights,covmat):
-    """
-    Return the portfolio standard deviation given the weights and covariance matrix
-    """
-    return np.sqrt(portfolio_var(weights,covmat))
-
+    return df.std()*(252**0.5)
