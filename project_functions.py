@@ -133,9 +133,9 @@ def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,n
             vol_eff_low.append(v)
     
     if plot:
-        plt.plot(vol_eff,r_eff,"black",label="Efficient Frontier")
-        plt.plot(vol_eff_low,r_eff_low,"black",label="Low Frontier",linestyle="-.")
-        plt.scatter(gmv_vol,gmv_r,color="black",label="GMV Portfolio",marker="o",s=50)
+        plt.plot(vol_eff,r_eff,c="#AF1623",label="Efficient Frontier")
+        plt.plot(vol_eff_low,r_eff_low,c="#AF1623",label="Low Frontier",linestyle="-.")
+        plt.scatter(gmv_vol,gmv_r,color="#AF1623",label="GMV Portfolio",marker="o",s=50)
         plt.legend()
         plt.xlabel("Annualized volatility")
         plt.ylabel("Annualized return")
