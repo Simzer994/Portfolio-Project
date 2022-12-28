@@ -82,23 +82,44 @@ def gmv_portfolio(rends:pd.DataFrame,cov:pd.DataFrame,show:bool=False):
     annual_volatility = portfolio_vol(weights,cov,show=show)
     return weights,annual_return,annual_volatility
 
-def opt_mean_variance(rends:pd.DataFrame,cov:pd.DataFrame,obj_rend:float,business_days:int=252,show:bool=False):
+def opt_mean_variance(rends:pd.DataFrame,cov:pd.DataFrame,obj_rend:float,risk_free=None,period_per_year:int=252,show:bool=False):
     """
-    Returns a dictionary of weights associated with each asset,
-    the return and volatility of the optimized portfolio
+    Renvoie un dictionnaire des poids associés à chaque asset\n
+    rends : pd.DataFrame\n
+    DataFrame contenant les rendements de chaque assets\n
+    cov : pd.DataFrame\n
+    Matrice de covariance annualisé des prix\n
+    obj_rend : float\n
+    Représente le rendement annualisé souhaité\n
+    risk_free : float\n
+    Représente le rendement annualisé sans risque\n
+    period_per_year : int\n
+    Période considérée pour calculer la volatilité annualisée\n
+    show : bool\n
+    Pour afficher ou non le résultat
     """
-
+    if risk_free != None:
+        rends = rends.copy()
+        rends["Risk Free"] = (1+risk_free)**(1/period_per_year)-1
+        cov = rends.cov()
     n_assets = rends.shape[1]
     init_weights = np.repeat(1/n_assets, n_assets)
 
+    # Limites pour les poids
     bounds = ((-1.0, 1.0),) * n_assets
 
+    # Définition des contraintes
     weights_sum_to_1 = {'type': 'eq',
                         'fun': lambda weights: np.sum(weights) - 1}
 
-    return_is_target = {'type': 'eq',
-                        'args': (rends,),
-                        'fun': lambda weights,rends: obj_rend - portfolio_return(weights,rends)}
+    if risk_free == None:
+        return_is_target = {'type': 'eq',
+                            'args': (rends,),
+                            'fun': lambda weights,rends: obj_rend - portfolio_return(weights,rends)}
+    else :
+        return_is_target = {'type': 'eq',
+                            'args': (rends,risk_free,),
+                            'fun': lambda weights,rends,risk_free: obj_rend - portfolio_return(weights,rends) - (1-np.sum(weights))*risk_free}
     
     # Fonction d'optimisation
     weights = minimize(portfolio_vol,init_weights,
@@ -112,14 +133,24 @@ def opt_mean_variance(rends:pd.DataFrame,cov:pd.DataFrame,obj_rend:float,busines
     v = portfolio_vol(weights.x,cov,show=show)
     return w,r,v
 
-def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,number:int=25,plot:bool=False):
+def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,number:int=25,risk_free=None,plot:bool=False):
     """
-    Return two arrays of returns and associate volatility
-    And plot the efficient frontier if plot is True
+    Return two arrays of returns and associate volatility\n
+    min : float\n
+    Start of the range of returns\n
+    max : float\n
+    End of the range of returns\n
+    number : int\n
+    Number of points to consider\n
+    plot : bool\n
+    To plot or not the efficient frontier
     """
     gmv_w,gmv_r,gmv_vol = gmv_portfolio(rends,cov)
     r_eff,vol_eff = np.linspace(gmv_r,max,number),[]
     eff = []
+    if risk_free != None:
+        r_eff_rf,vol_eff_rf = np.linspace(risk_free,max,number),[]
+        eff_rf = []
 
     if plot:
         r_eff_low,vol_eff_low = np.linspace(min,gmv_r,number),[]
@@ -127,18 +158,27 @@ def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,n
         w,r,v = opt_mean_variance(rends,cov,r_eff[i])
         vol_eff.append(v)
         eff.append([r_eff[i],v])
-
+        if risk_free != None:
+            w,r,v = opt_mean_variance(rends,cov,r_eff_rf[i],risk_free=risk_free)
+            vol_eff_rf.append(v)
+            eff_rf.append([r_eff_rf[i],v])
         if plot:
             w,r,v = opt_mean_variance(rends,cov,r_eff_low[i])
             vol_eff_low.append(v)
     
+    
     if plot:
-        plt.plot(vol_eff,r_eff,c="#AF1623",label="Efficient Frontier")
-        plt.plot(vol_eff_low,r_eff_low,c="#AF1623",label="Low Frontier",linestyle="-.")
-        plt.scatter(gmv_vol,gmv_r,color="#AF1623",label="GMV Portfolio",marker="o",s=50)
+        plt.plot(vol_eff,r_eff,"black",label="Efficient Frontier")
+        if risk_free != None:
+            plt.plot(vol_eff_rf,r_eff_rf,"black",label="Capital Market Line",linestyle='dotted')
+        plt.plot(vol_eff_low,r_eff_low,"black",label="Low Frontier",linestyle="-.")
+        plt.scatter(gmv_vol,gmv_r,color="black",label="GMV Portfolio",marker="o",s=50)
         plt.legend()
         plt.xlabel("Annualized volatility")
         plt.ylabel("Annualized return")
         plt.show()
     
-    return eff
+    if risk_free != None:
+        return eff,eff_rf
+    else:
+        return eff
