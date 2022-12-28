@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+import math
 
 def get_tickers(path: str):
     """
@@ -110,7 +111,7 @@ def opt_mean_variance(rends:pd.DataFrame,cov:pd.DataFrame,obj_rend:float,risk_fr
 
     # Définition des contraintes
     weights_sum_to_1 = {'type': 'eq',
-                        'fun': lambda weights: np.sum(weights) - 1}
+                        'fun': lambda weights: np.sum(np.abs(weights)) - 1}
 
     if risk_free == None:
         return_is_target = {'type': 'eq',
