@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import math
+import yfinance as yf
 
 def get_tickers(path: str):
     """
@@ -160,7 +161,7 @@ def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,n
         vol_eff.append(v)
         eff.append([r_eff[i],v])
         if risk_free != None:
-            w,r,v = opt_mean_variance(rends,cov,r_eff_rf[i],risk_free=risk_free)
+            w,r,v = opt_mean_variance(rends,cov,obj_rend=r_eff_rf[i],risk_free=risk_free)
             vol_eff_rf.append(v)
             eff_rf.append([r_eff_rf[i],v])
         if plot:
@@ -183,3 +184,23 @@ def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,n
         return eff,eff_rf
     else:
         return eff
+
+def get_ROA(tickers: list):
+    """
+    Return the ROA of the selected tickers
+    """
+    ROA = dict()
+
+    for ticker in tickers:
+        index = yf.Ticker(ticker)
+        data = index.info
+        df = pd.DataFrame.from_dict(data, orient='index')
+        ROA[ticker] = df.loc['returnOnAssets']
+
+    ROA = pd.DataFrame.from_dict(ROA, orient='index')
+    ROA = ROA.rename(columns={0: 'ROA'})
+
+    # On les trie par ordre décroissant
+    ROA = ROA.sort_values(by=['ROA'], ascending=False)
+
+    return ROA
