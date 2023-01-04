@@ -170,11 +170,11 @@ def efficient_frontier(rends:pd.DataFrame,cov:pd.DataFrame,min:float,max:float,n
     
     
     if plot:
-        plt.plot(vol_eff,r_eff,"black",label="Efficient Frontier")
+        plt.plot(vol_eff,r_eff,color="#AE1723",label="Efficient Frontier")
         if risk_free != None:
-            plt.plot(vol_eff_rf,r_eff_rf,"black",label="Capital Market Line",linestyle='dotted')
-        plt.plot(vol_eff_low,r_eff_low,"black",label="Low Frontier",linestyle="-.")
-        plt.scatter(gmv_vol,gmv_r,color="black",label="GMV Portfolio",marker="o",s=50)
+            plt.plot(vol_eff_rf,r_eff_rf,color="#AE1723",label="Capital Market Line",linestyle='dotted')
+        plt.plot(vol_eff_low,r_eff_low,color="#AE1723",label="Low Frontier",linestyle="-.")
+        plt.scatter(gmv_vol,gmv_r,color="#AE1723",label="GMV Portfolio",marker="o",s=50)
         plt.legend()
         plt.xlabel("Annualized volatility")
         plt.ylabel("Annualized return")
