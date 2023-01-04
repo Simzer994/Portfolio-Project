@@ -203,4 +203,6 @@ def get_ROA(tickers: list):
     # On les trie par ordre décroissant
     ROA = ROA.sort_values(by=['ROA'], ascending=False)
 
-    return ROA
+    ROA.to_csv('./datas/ROA.csv')
+
+    return None
