@@ -49,12 +49,19 @@ def annualy_asset_return(df: pd.DataFrame, business_days: int=252):
     """
     return (df+1).prod()**(business_days/df.shape[0])-1
 
-def portfolio_return(weights,rends:pd.DataFrame,show:bool=False):
+def portfolio_return(weights, rends:pd.DataFrame, show:bool=False, risk_free:float=None):
     """
     Returns the portfolio returns according to the assets considered and the associated weights
     """
-    rendements = pd.Series((rends*weights).sum(axis=1),name="Portfolio")
-    rendement = annualy_asset_return(rendements)
+    if risk_free != None:
+        weight_riskFree = weights["Risk Free"]
+        del weights["Risk Free"]
+        rendements = pd.Series((rends*weights).sum(axis=1),name="Portfolio")
+        rendement = annualy_asset_return(rendements)
+        rendement += weight_riskFree*risk_free
+    else:
+        rendements = pd.Series((rends*weights).sum(axis=1),name="Portfolio")
+        rendement = annualy_asset_return(rendements)
     if show:
         print("The portfolio return is:",round(rendement*100,2),"%")
     return rendement
@@ -204,5 +211,32 @@ def get_ROA(tickers: list):
     ROA = ROA.sort_values(by=['ROA'], ascending=False)
 
     ROA.to_csv('./datas/ROA.csv')
+
+    return None
+
+
+def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
+    """Plot the annualized returns of a portfolio"""
+
+    weight_riskFree = weights["Risk Free"]
+    del weights["Risk Free"]
+
+    rendements = pd.DataFrame((returns*weights).sum(axis=1))
+
+    # rename the column
+    rendements = rendements.rename(columns={0: "Returns"})
+
+    # sum the returns for each months
+    rendements = rendements.resample("M").sum()
+
+    # annualize the returns
+    rendements = (1+rendements)**12-1
+
+    # add the risk free return
+    rendements += weight_riskFree*risk_free
+
+    rendements.plot(figsize=(15, 7), color="#AE1723")
+    plt.ylabel("Returns")
+    plt.title("Evolution of the annualized monthly returns of the portfolio")
 
     return None
