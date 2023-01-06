@@ -238,5 +238,6 @@ def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
     rendements.plot(figsize=(15, 7), color="#AE1723")
     plt.ylabel("Returns")
     plt.title("Evolution of the annualized monthly returns of the portfolio")
+    plt.ylim(-0.5, 1)
 
     return None
