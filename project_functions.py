@@ -218,6 +218,9 @@ def get_ROA(tickers: list):
 def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
     """Plot the annualized returns of a portfolio"""
 
+    weightsBis = weights.copy()
+    return_annualized = portfolio_return(weightsBis, returns, show=False, risk_free=risk_free)
+
     weight_riskFree = weights["Risk Free"]
     del weights["Risk Free"]
 
@@ -236,9 +239,11 @@ def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
     rendements += weight_riskFree*risk_free
 
     rendements.plot(figsize=(15, 7), color="#AE1723")
+    plt.axhline(y=return_annualized, color="#21468B", linestyle="--", label='Annualized return of the portfolio')
     plt.ylabel("Returns")
     plt.title("Evolution of the annualized monthly returns of the portfolio")
     plt.ylim(-0.5, 1)
+    plt.legend()
 
     return None
 
@@ -246,7 +251,6 @@ def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
 def plot_volatility(returns: pd.DataFrame, weights):
     """Plot the annualized volatility of a portfolio"""
 
-    # remove the risk free asset from the weights
     del weights["Risk Free"]
 
     # create a DataFrame with the returns of the portfolio
