@@ -241,3 +241,47 @@ def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
     plt.ylim(-0.5, 1)
 
     return None
+
+
+def plot_volatility(returns: pd.DataFrame, weights):
+    """Plot the annualized volatility of a portfolio"""
+
+    # remove the risk free asset from the weights
+    del weights["Risk Free"]
+
+    # create a DataFrame with the returns of the portfolio
+    returns_portfolio = pd.DataFrame((returns*weights).sum(axis=1))
+
+    # reset the index to have Date as a column
+    returns_portfolio = returns_portfolio.reset_index()
+
+    # split DataFrame if the month is different
+    returns_split = returns_portfolio.groupby(pd.Grouper(key='Date', freq='M'))
+
+    # create a list of DataFrame
+    returns_list = [group for _, group in returns_split]
+
+    # create a list of covariance matrix
+    cov_list = [returns_list[i].cov() for i in range(len(returns_list))]
+
+    # create a list of volatility
+    vol_list = [np.sqrt(cov_list[i].iloc[0, 0]) for i in range(len(cov_list))]
+
+    # create a DataFrame with the volatility
+    vol = pd.DataFrame(vol_list, columns=["Volatility"])
+
+    # annualize the volatility
+    vol = vol*12**0.5
+
+    # add the date to the DataFrame
+    vol["Date"] = returns_portfolio.set_index('Date').resample("M").sum().index
+
+    # set the date as index
+    vol = vol.set_index("Date")
+
+    # plot the volatility
+    vol.plot(figsize=(15, 7), color="#AE1723")
+    plt.ylabel("Volatility")
+    plt.title("Evolution of the annualized monthly volatility of the portfolio")
+
+    return None
