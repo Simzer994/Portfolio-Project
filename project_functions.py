@@ -4,6 +4,8 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import math
 import yfinance as yf
+import matplotlib.dates as mdates
+
 
 def get_tickers(path: str):
     """
@@ -238,12 +240,14 @@ def plot_returns(returns: pd.DataFrame, weights, risk_free: float):
     # add the risk free return
     rendements += weight_riskFree*risk_free
 
-    rendements.plot(figsize=(15, 7), color="#AE1723")
+    rendements.plot(figsize=(15, 7), color="#AE1723", kind='bar')
     plt.axhline(y=return_annualized, color="#21468B", linestyle="--", label='Annualized return of the portfolio')
     plt.ylabel("Returns")
     plt.title("Evolution of the annualized monthly returns of the portfolio")
-    plt.ylim(-0.5, 1)
     plt.legend()
+    plt.xticks(rotation=45)
+    plt.locator_params(axis='x', nbins=12)
+    plt.show()
 
     return None
 
@@ -284,9 +288,12 @@ def plot_volatility(returns: pd.DataFrame, weights):
     vol = vol.set_index("Date")
 
     # plot the volatility
-    vol.plot(figsize=(15, 7), color="#AE1723")
+    vol.plot(figsize=(15, 7), color="#AE1723", kind='bar')
     plt.ylabel("Volatility")
     plt.title("Evolution of the annualized monthly volatility of the portfolio")
+    plt.xticks(rotation=45)
+    plt.locator_params(axis='x', nbins=12)
+    plt.show()
 
     return None
 
